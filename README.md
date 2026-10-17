@@ -8,6 +8,10 @@ it rebuilds:
 - `docs/nz-mortgage-rates.json` – the data and headline figures, for the app
 - `docs/nz-mortgage-rates.csv` and `docs/nz-mortgage-rates-b21.csv` – plain data
 - `docs/index.html` – a simple web page with the table and download links
+- `docs/which-mortgage-term/` – the "Which mortgage term has been best?" calculator.
+  It reads `nz-mortgage-rates.json`, so it updates itself after each monthly
+  upload. Its script is deliberately scrambled because this repository is
+  public; the readable source is kept off GitHub.
 
 `data/` keeps the last RBNZ files you uploaded, so code changes and the weekly
 check can rebuild without a fresh download.
@@ -17,6 +21,7 @@ Once GitHub Pages is on, these live at permanent links:
     https://carrnick308.github.io/nz-mortgage-rates/historical-mortgage-rates.xlsx
     https://carrnick308.github.io/nz-mortgage-rates/nz-mortgage-rates.json
     https://carrnick308.github.io/nz-mortgage-rates/
+    https://carrnick308.github.io/nz-mortgage-rates/which-mortgage-term/
 
 ## Before you start
 
