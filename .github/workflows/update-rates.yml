@@ -1,0 +1,52 @@
+name: Update mortgage rates
+
+on:
+  # Every Monday 9:17am NZ time (Sunday 20:17 UTC). RBNZ updates monthly;
+  # weekly checks mean new data appears within a week of release.
+  # Runs where nothing has changed make no commit.
+  schedule:
+    - cron: "17 20 * * 0"
+  # "Run workflow" button on the Actions tab.
+  workflow_dispatch:
+  # Fallback: uploading an RBNZ file into inbox/ triggers a run straight away.
+  # Also runs when the script or logo changes, so layout fixes go live at once.
+  push:
+    paths:
+      - "inbox/**"
+      - "scripts/**"
+      - "assets/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-rates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install libraries
+        run: pip install openpyxl==3.1.5 xlsxwriter==3.2.9
+
+      - name: Fetch RBNZ data and rebuild files
+        run: python scripts/update_rates.py
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name "rates-bot"
+          git config user.email "rates-bot@users.noreply.github.com"
+          git add -A docs inbox
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update mortgage rates from RBNZ"
+            git push
+          fi
