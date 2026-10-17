@@ -1,9 +1,9 @@
 name: Update mortgage rates
 
 on:
-  # Every Monday 9:17am NZ time (Sunday 20:17 UTC). RBNZ updates monthly;
-  # weekly checks mean new data appears within a week of release.
-  # Runs where nothing has changed make no commit.
+  # Every Monday 9:17am NZ time (Sunday 20:17 UTC). RBNZ currently blocks
+  # GitHub, so this usually finds nothing new and quietly does nothing; it
+  # picks the data up automatically if RBNZ ever lifts the block.
   schedule:
     - cron: "17 20 * * 0"
   # "Run workflow" button on the Actions tab.
@@ -15,6 +15,7 @@ on:
       - "inbox/**"
       - "scripts/**"
       - "assets/**"
+      - "data/**"
 
 permissions:
   contents: write
@@ -27,9 +28,9 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -43,7 +44,7 @@ jobs:
         run: |
           git config user.name "rates-bot"
           git config user.email "rates-bot@users.noreply.github.com"
-          git add -A docs inbox
+          git add -A docs inbox data
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

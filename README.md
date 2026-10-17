@@ -9,6 +9,9 @@ it rebuilds:
 - `docs/nz-mortgage-rates.csv` and `docs/nz-mortgage-rates-b21.csv` – plain data
 - `docs/index.html` – a simple web page with the table and download links
 
+`data/` keeps the last RBNZ files you uploaded, so code changes and the weekly
+check can rebuild without a fresh download.
+
 Once GitHub Pages is on, these live at permanent links:
 
     https://carrnick308.github.io/nz-mortgage-rates/historical-mortgage-rates.xlsx
@@ -43,25 +46,32 @@ Once GitHub Pages is on, these live at permanent links:
 - **Green tick:** automation works. Open the spreadsheet link above and check
   it. Then, on your Squarespace page, change the "Historical mortgage
   rates" link to the `.xlsx` link above. You're done: it now updates itself.
-- **Red cross saying RBNZ returned a web page or couldn't download:** RBNZ's
-  bot protection is blocking GitHub. Use the fallback below. It turns the
-  monthly job into about two minutes.
+- **Red cross saying RBNZ couldn't be downloaded (403 Forbidden):** RBNZ
+  blocks GitHub's servers. Use the monthly upload below.
 - **Red cross saying columns couldn't be found:** RBNZ's file layout differs
   from what the script expects. Send the error message to Claude.
 
 GitHub emails you whenever a run fails, so a broken month won't go unnoticed.
 
-## Fallback: monthly two-minute upload
+## Monthly two-minute upload
 
-1. Download `hb20.xlsx` from the
-   [RBNZ B20 page](https://www.rbnz.govt.nz/statistics/series/exchange-and-interest-rates/new-residential-mortgage-standard-interest-rates)
-   and `hb21.xlsx` from the
-   [RBNZ B21 page](https://www.rbnz.govt.nz/statistics/series/exchange-and-interest-rates/new-residential-mortgage-special-interest-rates).
+RBNZ blocks GitHub's servers, so each month (after RBNZ's release, usually
+early in the month):
+
+1. Download both files. These links download them directly:
+   - [hb20.xlsx – standard rates](https://www.rbnz.govt.nz/-/media/project/sites/rbnz/files/statistics/series/b/b20/hb20.xlsx)
+   - [hb21.xlsx – special rates](https://www.rbnz.govt.nz/-/media/project/sites/rbnz/files/statistics/series/b/b21/hb21.xlsx)
+
+   (They're also listed on RBNZ's
+   [data file index page](https://www.rbnz.govt.nz/statistics/series/data-file-index-page).)
+   The names must stay exactly `hb20.xlsx` and `hb21.xlsx`, so rename any
+   that download as `hb20 (1).xlsx`.
 2. On github.com, open the `inbox` folder → **Add file → Upload files** →
-   drop in both files together → Commit.
+   drop in both files together → **Commit changes**.
 
-That upload starts the update straight away. The files are removed from
-`inbox` after they're used.
+That upload starts the update straight away. The files are moved out of
+`inbox` into `data/`, which holds the last good copy. Check the Actions tab
+for a green tick.
 
 ## What's in the spreadsheet
 
@@ -75,8 +85,10 @@ That upload starts the update straight away. The files are removed from
   A new start year is added automatically once it has 10 years of
   data: January 2017 joins when December 2026 data arrives.
 
-Every figure is a live formula, so visitors can click a cell and see how
-it's calculated. Ties go to the shorter term.
+The published file contains numbers only, no formulas, so the method can't
+be unhidden or copied from it. (Set `VALUES_ONLY = False` in
+`scripts/workbook.py` for a version with live formulas.) Ties go to the
+shorter term.
 
 ## Safety checks
 

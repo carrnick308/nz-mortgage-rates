@@ -10,8 +10,9 @@ GitHub Pages):
     nz-mortgage-rates.csv            standard rates, plain data
     nz-mortgage-rates-b21.csv        special rates, plain data
 
-Fallback: if RBNZ blocks the automated download, put hb20.xlsx / hb21.xlsx
-into ./inbox and the script uses those instead (then removes them).
+RBNZ blocks GitHub's servers, so each month hb20.xlsx and hb21.xlsx are
+uploaded to ./inbox. The script uses them, keeps a copy in ./data (used
+whenever the download is blocked) and clears the inbox.
 
 Safety checks stop the run, leaving the published files untouched, if the
 new data looks wrong: missing terms, implausible rates, or fewer months than
@@ -38,6 +39,7 @@ import workbook  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "docs"
 INBOX = ROOT / "inbox"
+CACHE = ROOT / "data"   # last good RBNZ files, used when the download is blocked
 LOGO = ROOT / "assets" / "logo.png"
 
 XLSX_NAME = "historical-mortgage-rates.xlsx"
@@ -45,7 +47,7 @@ JSON_NAME = "nz-mortgage-rates.json"
 
 # Bump this when the layout of the outputs changes, so the next run rebuilds
 # them even if RBNZ hasn't released new data.
-FORMAT_VERSION = 5
+FORMAT_VERSION = 6
 
 SERIES = {
     "B20": {
@@ -97,12 +99,20 @@ class DataProblem(Exception):
 # ---------------------------------------------------------------- fetching
 
 def fetch(series_code: str) -> tuple[bytes, str]:
-    """Return (file bytes, where it came from). An inbox file wins over the download."""
+    """Return (file bytes, where it came from).
+
+    Order: a file uploaded to inbox/, then a fresh download from RBNZ, then
+    the last good copy kept in data/. RBNZ currently blocks GitHub's servers,
+    so the download usually fails; falling back to data/ means code changes
+    and the weekly check still run cleanly instead of reporting an error.
+    """
     info = SERIES[series_code]
     local = INBOX / info["file"]
     if local.exists():
         return local.read_bytes(), f"inbox/{info['file']}"
 
+    cached = CACHE / info["file"]
+    problem = None
     req = urllib.request.Request(info["url"], headers={
         "User-Agent": USER_AGENT,
         "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*",
@@ -111,23 +121,23 @@ def fetch(series_code: str) -> tuple[bytes, str]:
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             data = resp.read()
+        # An .xlsx is a zip file, which always starts with 'PK'. Anything else
+        # is usually a bot-check web page.
+        if data.startswith(b"PK"):
+            return data, info["url"]
+        problem = "RBNZ returned a web page instead of the spreadsheet (bot protection)"
     except Exception as exc:  # network error, 403 from bot protection, etc.
-        raise DataProblem(
-            f"Couldn't download {series_code} from RBNZ ({exc}).\n"
-            f"Fallback: download {info['file']} yourself from {info['page']}\n"
-            f"and upload it to the inbox/ folder of this repository."
-        ) from exc
+        problem = f"couldn't download from RBNZ ({exc})"
 
-    # An .xlsx is a zip file, which always starts with 'PK'. Anything else is
-    # usually a bot-check web page.
-    if not data.startswith(b"PK"):
-        raise DataProblem(
-            f"RBNZ returned a web page instead of the {series_code} spreadsheet "
-            f"(likely bot protection).\n"
-            f"Fallback: download {info['file']} from {info['page']}\n"
-            f"and upload it to the inbox/ folder of this repository."
-        )
-    return data, info["url"]
+    if cached.exists():
+        print(f"{series_code}: {problem}; using the last uploaded copy in data/.")
+        return cached.read_bytes(), f"data/{info['file']}"
+
+    raise DataProblem(
+        f"{series_code}: {problem}, and there's no saved copy in data/ yet.\n"
+        f"Download {info['file']} from {info['page']}\n"
+        f"and upload it to the inbox/ folder of this repository."
+    )
 
 
 # ---------------------------------------------------------------- parsing
@@ -327,7 +337,7 @@ def write_outputs(all_series: dict[str, dict], sources: dict[str, str]) -> bool:
 # ---------------------------------------------------------------- main
 
 def main() -> int:
-    all_series, sources = {}, {}
+    all_series, sources, raw = {}, {}, {}
     try:
         for code in SERIES:
             data, source = fetch(code)
@@ -335,6 +345,7 @@ def main() -> int:
             check(rows, code)
             all_series[code] = rows
             sources[code] = source
+            raw[code] = data
             print(f"{code}: {len(rows)} months, {min(rows)} to {max(rows)} (from {source})")
     except DataProblem as problem:
         print(f"\nSTOPPED – published files were not changed.\n{problem}", file=sys.stderr)
@@ -343,12 +354,16 @@ def main() -> int:
     if write_outputs(all_series, sources):
         print(f"Updated files in {OUT_DIR}")
 
-    # A file dropped into inbox/ is used once, then removed, so next month's
-    # run goes back to downloading from RBNZ automatically.
+    # Keep the RBNZ file that was just used as the saved copy in data/, and
+    # clear the inbox so it's empty for next month's upload.
+    CACHE.mkdir(exist_ok=True)
     for code, source in sources.items():
+        name = SERIES[code]["file"]
+        if not source.startswith("data/"):
+            (CACHE / name).write_bytes(raw[code])
         if source.startswith("inbox/"):
-            (INBOX / SERIES[code]["file"]).unlink()
-            print(f"Used and removed {source}")
+            (INBOX / name).unlink()
+            print(f"Used {source}, saved it to data/ and cleared the inbox")
     return 0
 
 

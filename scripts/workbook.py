@@ -1,11 +1,11 @@
 """
 Builds the "Historical mortgage rates" workbook.
 
-Every figure on the Summary and Workings sheets is a live Excel formula, so
-anyone can click a cell and see how it's worked out. The script also works
-each figure out in Python and stores it as the formula's saved result, so
-the numbers show straight away in previews (phones, Google Drive, Quick
-Look) that don't recalculate formulas. Excel recalculates on opening anyway.
+The script works out every figure in Python. With VALUES_ONLY = True (the
+setting for the published file) the workbook contains just the results: no
+formulas, so the method can't be unhidden or copied from the file. Set it to
+False to build a version with live Excel formulas instead (each formula is
+stored with the same pre-calculated result).
 """
 
 from __future__ import annotations
@@ -29,6 +29,9 @@ TERM_NAMES = {
 MIN_PERIOD_MONTHS = 120
 # Periods start in January of each year from this year.
 FIRST_PERIOD_YEAR = 2005
+
+# True: publish numbers only, no formulas. False: live formulas.
+VALUES_ONLY = True
 
 BRAND = "#0F4D9C"
 LIGHT = "#E8EEF7"
@@ -62,6 +65,18 @@ def months_between(start: str, end: str) -> int:
 def _mean(values):
     values = [v for v in values if v is not None]
     return sum(values) / len(values) if values else None
+
+
+def _put(ws, row, col, formula, fmt, value):
+    """Write a calculated cell: the value alone, or the formula plus its value."""
+    if not VALUES_ONLY:
+        ws.write_formula(row, col, formula, fmt, value)
+    elif value is None or value == "":
+        ws.write_blank(row, col, None, fmt)
+    elif isinstance(value, str):
+        ws.write_string(row, col, value, fmt)
+    else:
+        ws.write_number(row, col, value, fmt)
 
 
 # ---------------------------------------------------------------- figures
@@ -200,6 +215,8 @@ def _formats(wb):
         "month_box": fmt(num_format="mmm yyyy", align="left", bold=True, bg_color=LIGHT,
                          border=1, border_color="#C9D3E3"),
         "data_pct": fmt(num_format="0.00%", align="center"),
+        "data_pct_cheap": fmt(num_format="0.00%", align="center", bold=True,
+                              bg_color=CHEAPEST_FILL),
         "text_c": fmt(align="center"),
         "cheap": wb.add_format({"bg_color": CHEAPEST_FILL, "bold": True}),
         "small": fmt(font_size=9, font_color="#595959"),
@@ -226,28 +243,33 @@ def _data_sheet(wb, f, name, rows, keys):
     for i, m in enumerate(months):
         r = i + 1
         ws.write_datetime(r, 0, month_end(m), f["month"])
+        present = [rows[m][k] for k in keys if rows[m].get(k) is not None]
+        low = min(present) if present else None
         for k, c in term_col.items():
             v = rows[m].get(k)
             if v is None:
                 ws.write_blank(r, c, None, f["data_pct"])
             else:
-                ws.write_number(r, c, v / 100, f["data_pct"])
+                # Values-only: shade the cheapest rate(s) directly.
+                cheap = VALUES_ONLY and v == low
+                ws.write_number(r, c, v / 100, f["data_pct_cheap"] if cheap else f["data_pct"])
         excel_row = r + 1
         rng = f"{first_letter}{excel_row}:{last_letter}{excel_row}"
         c_key = cheapest(rows[m], keys)
-        ws.write_formula(
+        _put(ws, 
             r, cheap_col,
             f"=IFERROR(INDEX(${first_letter}$1:${last_letter}$1,MATCH(MIN({rng}),{rng},0)),\"\")",
             f["text_c"], TERM_NAMES[c_key] if c_key else "",
         )
 
-    # Highlight the cheapest rate(s) each month.
-    ws.conditional_format(first - 1, 1, last - 1, len(keys), {
-        "type": "formula",
-        "criteria": f"=AND({first_letter}{first}<>\"\",{first_letter}{first}="
-                    f"MIN(${first_letter}{first}:${last_letter}{first}))",
-        "format": f["cheap"],
-    })
+    # Formula version: highlight the cheapest rate(s) each month by rule.
+    if not VALUES_ONLY:
+        ws.conditional_format(first - 1, 1, last - 1, len(keys), {
+            "type": "formula",
+            "criteria": f"=AND({first_letter}{first}<>\"\",{first_letter}{first}="
+                        f"MIN(${first_letter}{first}:${last_letter}{first}))",
+            "format": f["cheap"],
+        })
 
     ws.freeze_panes(1, 1)
     ws.repeat_rows(0)
@@ -298,19 +320,19 @@ def _workings_sheet(wb, f, figs, std_ref):
         r = first + i
         start_cell = xl_rowcol_to_cell(r, 0, col_abs=True)
         ws.write_datetime(r, 0, month_start(p["start"]), f["month_box"])
-        ws.write_formula(r, 1, f'=COUNTIFS({std_ref["dates"]},">="&{start_cell})',
+        _put(ws, r, 1, f'=COUNTIFS({std_ref["dates"]},">="&{start_cell})',
                          f["int"], p["months"])
         for j, k in enumerate(keys):
-            ws.write_formula(
+            _put(ws, 
                 r, avg_c0 + j,
                 f'=AVERAGEIFS({std_ref["term"][k]},{std_ref["dates"]},">="&{start_cell})',
                 f["pct"], p["average"][k])
             head = xl_rowcol_to_cell(hr2, cnt_c0 + j, row_abs=True)
-            ws.write_formula(
+            _put(ws, 
                 r, cnt_c0 + j,
                 f'=COUNTIFS({std_ref["dates"]},">="&{start_cell},{std_ref["cheapest"]},{head})',
                 f["int"], p["cheapest"][k])
-        ws.write_formula(
+        _put(ws, 
             r, total_c,
             f"=SUM({xl_rowcol_to_cell(r, cnt_c0)}:{xl_rowcol_to_cell(r, cnt_c0 + nk - 1)})",
             f["int"], p["total"])
@@ -322,7 +344,7 @@ def _workings_sheet(wb, f, figs, std_ref):
     ws.set_row(avg_r, 26)
     for j, k in enumerate(keys):
         c = avg_c0 + j
-        ws.write_formula(
+        _put(ws, 
             avg_r, c,
             f"=AVERAGE({xl_rowcol_to_cell(first, c)}:{xl_rowcol_to_cell(last, c)})",
             f["pct_bold"], figs["long_period_average"][k])
@@ -332,14 +354,14 @@ def _workings_sheet(wb, f, figs, std_ref):
     ws.write(share_r, cnt_c0 - 1, "Share", f["label"])
     for j, k in enumerate(keys):
         c = cnt_c0 + j
-        ws.write_formula(
+        _put(ws, 
             tot_r, c, f"=SUM({xl_rowcol_to_cell(first, c)}:{xl_rowcol_to_cell(last, c)})",
             f["int"], figs["cheapest_totals"][k])
-        ws.write_formula(
+        _put(ws, 
             share_r, c,
             f"={xl_rowcol_to_cell(tot_r, c)}/{xl_rowcol_to_cell(tot_r, total_c, row_abs=True, col_abs=True)}",
             f["pct0"], figs["cheapest_share"][k])
-    ws.write_formula(
+    _put(ws, 
         tot_r, total_c,
         f"=SUM({xl_rowcol_to_cell(first, total_c)}:{xl_rowcol_to_cell(last, total_c)})",
         f["int"], figs["cheapest_grand_total"])
@@ -401,7 +423,7 @@ def _summary_sheet(ws, f, figs, std_ref, spc_ref, work_ref, generated, logo_path
             ws.write(row, 0, label, f["label"])
             for i, k in enumerate(TERM_KEYS):
                 if k in keys and overall.get(k):
-                    ws.write_formula(row, 1 + i, f"={fn}({ref['term'][k]})",
+                    _put(ws, row, 1 + i, f"={fn}({ref['term'][k]})",
                                      f["pct_bold"] if key == "average" else f["pct"],
                                      overall[k][key])
                 else:
@@ -410,7 +432,7 @@ def _summary_sheet(ws, f, figs, std_ref, spc_ref, work_ref, generated, logo_path
         ws.write(row, 0, "Range (highest – lowest)", f["label"])
         for i, k in enumerate(TERM_KEYS):
             if k in keys and overall.get(k):
-                ws.write_formula(row, 1 + i,
+                _put(ws, row, 1 + i,
                                  f"={xl_rowcol_to_cell(row - 2, 1 + i)}-{xl_rowcol_to_cell(row - 1, 1 + i)}",
                                  f["pct"], overall[k]["range"])
             else:
@@ -437,7 +459,7 @@ def _summary_sheet(ws, f, figs, std_ref, spc_ref, work_ref, generated, logo_path
     ws.write(r, 0, "Average", f["label"])
     for i, k in enumerate(TERM_KEYS):
         if k in figs["std_keys"]:
-            ws.write_formula(r, 1 + i, f"={work_ref['avg'][k]}", f["pct_bold"],
+            _put(ws, r, 1 + i, f"={work_ref['avg'][k]}", f["pct_bold"],
                              figs["long_period_average"][k])
         else:
             ws.write(r, 1 + i, "N/A", f["na"])
@@ -457,7 +479,7 @@ def _summary_sheet(ws, f, figs, std_ref, spc_ref, work_ref, generated, logo_path
         ws.write(r, 0, label, f["label"])
         for i, k in enumerate(TERM_KEYS):
             if k in figs["std_keys"]:
-                ws.write_formula(r, 1 + i, f"={work_ref[refkey][k]}", f[fmt_key], figs[figkey][k])
+                _put(ws, r, 1 + i, f"={work_ref[refkey][k]}", f[fmt_key], figs[figkey][k])
             else:
                 ws.write(r, 1 + i, "N/A", f["na"])
         r += 1
