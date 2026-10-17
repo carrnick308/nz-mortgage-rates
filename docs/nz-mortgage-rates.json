@@ -1,7 +1,7 @@
 {
- "format_version": 5,
+ "format_version": 6,
  "source": "Reserve Bank of New Zealand",
- "generated": "2026-10-17T20:47:28Z",
+ "generated": "2026-10-17T21:54:28Z",
  "units": "percent per annum, end-of-month average",
  "summary": {
   "latest_month": "2026-09",
