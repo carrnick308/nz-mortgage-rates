@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "asOf": "2026-10-18",
+  "_howToEdit": "Edit on github.com: change a value, update asOf to today's date (YYYY-MM-DD), Commit changes. Apps pick it up the next time each calculator is opened. Keep the quotes, commas and brackets exactly as they are.",
+  "reverseMortgage": {
+    "heartlandRate": 8.25,
+    "heartlandRateFrom": "29 September 2026",
+    "providerNote": "Heartland has agreed to merge with TSB; if the merger goes ahead, the combined bank will be called TSB Heartland Bank."
+  },
+  "creditCards": {
+    "detailsAsAt": "August 2026",
+    "notes": [
+      "BNZ Advantage Platinum points were devalued about 26% in February 2026. Current redemption values are used."
+    ],
+    "cards": [
+      {
+        "id": "amex_airpoints_free",
+        "name": "Amex Airpoints Card",
+        "issuer": "American Express",
+        "annualFee": 0,
+        "rewardType": "airpoints",
+        "earnModel": "fixed",
+        "spendPerDollar": 100,
+        "isAmex": true,
+        "note": null
+      },
+      {
+        "id": "amex_airpoints_platinum",
+        "name": "Amex Airpoints Platinum",
+        "issuer": "American Express",
+        "annualFee": 195,
+        "rewardType": "airpoints",
+        "earnModel": "fixed",
+        "spendPerDollar": 70,
+        "isAmex": true,
+        "note": null
+      },
+      {
+        "id": "amex_gold",
+        "name": "Amex Gold Rewards",
+        "issuer": "American Express",
+        "annualFee": 200,
+        "rewardType": "airpoints",
+        "earnModel": "fixed",
+        "spendPerDollar": 75,
+        "isAmex": true,
+        "note": "2 Membership Rewards points per $1 spent. Redeemable for Airpoints, travel, dining credit & more."
+      },
+      {
+        "id": "amex_platinum",
+        "name": "Amex Platinum Card",
+        "issuer": "American Express",
+        "annualFee": 850,
+        "rewardType": "points",
+        "earnModel": "points_range",
+        "ptsPerDollar": 2,
+        "ptValueLow": 0.005,
+        "ptValueHigh": 0.0075,
+        "isAmex": true,
+        "note": "Charge card (no preset limit; balance paid in full monthly). Earns 2 Membership Rewards points per $1. Point value varies by redemption: ~0.5c for gift cards or statement credit, ~0.75c via Amex Travel (10,000 pts = $75), and potentially more through airline/hotel transfers. Ranges shown reflect the 0.5c–0.75c everyday redemption band, and your value will vary. Also includes up to $300 annual dining credit, $200 travel credit and lounge access (not counted here)."
+      },
+      {
+        "id": "anz_airpoints_visa",
+        "name": "ANZ Airpoints Visa",
+        "issuer": "ANZ",
+        "annualFee": 65,
+        "rewardType": "airpoints",
+        "earnModel": "fixed",
+        "spendPerDollar": 170,
+        "isAmex": false,
+        "note": null
+      },
+      {
+        "id": "anz_airpoints_platinum",
+        "name": "ANZ Airpoints Visa Platinum",
+        "issuer": "ANZ",
+        "annualFee": 150,
+        "rewardType": "airpoints",
+        "earnModel": "fixed",
+        "spendPerDollar": 110,
+        "isAmex": false,
+        "note": "Includes overseas travel insurance and 50% bonus Status Points."
+      },
+      {
+        "id": "westpac_airpoints",
+        "name": "Westpac Airpoints Mastercard",
+        "issuer": "Westpac",
+        "annualFee": 70,
+        "rewardType": "airpoints",
+        "earnModel": "tiered_airpoints",
+        "tier1Rate": 150,
+        "tier1Cap": 3500,
+        "tier2Rate": 300,
+        "isAmex": false,
+        "note": "Tiered: $150 per Airpoints Dollar up to $3,500/month, then $300 per Airpoints Dollar."
+      },
+      {
+        "id": "westpac_airpoints_platinum",
+        "name": "Westpac Airpoints Platinum",
+        "issuer": "Westpac",
+        "annualFee": 125,
+        "rewardType": "airpoints",
+        "earnModel": "tiered_airpoints",
+        "tier1Rate": 110,
+        "tier1Cap": 7000,
+        "tier2Rate": 220,
+        "isAmex": false,
+        "note": "Tiered: $110 per Airpoints Dollar up to $7,000/month, then $220 per Airpoints Dollar. Includes Koru discount."
+      },
+      {
+        "id": "westpac_airpoints_world",
+        "name": "Westpac Airpoints World",
+        "issuer": "Westpac",
+        "annualFee": 310,
+        "rewardType": "airpoints",
+        "earnModel": "tiered_airpoints",
+        "tier1Rate": 95,
+        "tier1Cap": 15000,
+        "tier2Rate": 190,
+        "isAmex": false,
+        "note": "Tiered: $95 per Airpoints Dollar up to $15,000/month, then $190 per Airpoints Dollar."
+      },
+      {
+        "id": "anz_cashback_visa",
+        "name": "ANZ CashBack Visa",
+        "issuer": "ANZ",
+        "annualFee": 40,
+        "rewardType": "cashback",
+        "earnModel": "fixed",
+        "spendPerDollar": 150,
+        "isAmex": false,
+        "note": null
+      },
+      {
+        "id": "anz_cashback_platinum",
+        "name": "ANZ CashBack Visa Platinum",
+        "issuer": "ANZ",
+        "annualFee": 80,
+        "rewardType": "cashback",
+        "earnModel": "fixed",
+        "spendPerDollar": 120,
+        "isAmex": false,
+        "note": null
+      },
+      {
+        "id": "tsb_platinum",
+        "name": "TSB Platinum Mastercard",
+        "issuer": "TSB",
+        "annualFee": 90,
+        "rewardType": "cashback",
+        "earnModel": "fixed",
+        "spendPerDollar": 125,
+        "monthlyCashbackCap": 60,
+        "isAmex": false,
+        "note": "Cashback capped at $60/month (max $7,500 monthly spend earns cashback). Includes travel, mobile phone & purchase protection insurance."
+      },
+      {
+        "id": "sbs_visa",
+        "name": "SBS Visa",
+        "issuer": "SBS",
+        "annualFee": 0,
+        "rewardType": "cashback",
+        "earnModel": "fixed",
+        "spendPerDollar": 150,
+        "isAmex": false,
+        "note": null
+      },
+      {
+        "id": "asb_visa_rewards",
+        "name": "ASB Visa Rewards",
+        "issuer": "ASB",
+        "annualFee": 40,
+        "rewardType": "store",
+        "earnModel": "fixed",
+        "spendPerDollar": 150,
+        "isAmex": false,
+        "note": "ASB True Rewards: 1 TR$ = $1 NZD. Spend at 20+ partner stores (Woolworths, Noel Leeming, Farmers etc.) or redeem for travel & gifts. Alternatively earn Everyday Rewards points (Woolworths/bp)."
+      },
+      {
+        "id": "asb_visa_platinum",
+        "name": "ASB Visa Platinum Rewards",
+        "issuer": "ASB",
+        "annualFee": 125,
+        "rewardType": "store",
+        "earnModel": "fixed",
+        "spendPerDollar": 100,
+        "isAmex": false,
+        "note": "ASB True Rewards: 1 TR$ = $1 NZD. Spend at 20+ partner stores or redeem for travel & gifts. Alternatively earn Everyday Rewards points (Woolworths/bp)."
+      },
+      {
+        "id": "bnz_advantage_platinum",
+        "name": "BNZ Advantage Visa Platinum",
+        "issuer": "BNZ",
+        "annualFee": 90,
+        "rewardType": "store",
+        "earnModel": "fixed",
+        "spendPerDollar": 89.2,
+        "isAmex": false,
+        "note": "BNZ Points: redeem for cashback, flights, eGift cards or merchandise via BNZ Rewards portal. ⚠️ Points devalued ~26% from February 2026. Rate shown reflects current redemption value."
+      },
+      {
+        "id": "westpac_hotpoints",
+        "name": "Westpac Hotpoints Mastercard",
+        "issuer": "Westpac",
+        "annualFee": 40,
+        "rewardType": "store",
+        "earnModel": "tiered_hotpoints",
+        "tier1PtsPerDollar": 1,
+        "tier1Cap": 3500,
+        "tier2PtsPerDollar": 0.5,
+        "ptValue": 0.00494,
+        "isAmex": false,
+        "note": "Westpac Hotpoints: spend like cash via Hotpoints Pay, or redeem in the Hotpoints store (gift cards, products, KiwiSaver, charities). 1 hotpoint = $0.00494. Tiered: 1 pt/$1 up to $3,500/month, 0.5 pts/$1 after."
+      },
+      {
+        "id": "westpac_hotpoints_platinum",
+        "name": "Westpac Hotpoints Platinum",
+        "issuer": "Westpac",
+        "annualFee": 70,
+        "rewardType": "store",
+        "earnModel": "tiered_hotpoints",
+        "tier1PtsPerDollar": 1.5,
+        "tier1Cap": 7000,
+        "tier2PtsPerDollar": 1,
+        "ptValue": 0.00494,
+        "isAmex": false,
+        "note": "Westpac Hotpoints: spend like cash via Hotpoints Pay or redeem in Hotpoints store. 1 hotpoint = $0.00494. Tiered: 1.5 pts/$1 up to $7,000/month, 1 pt/$1 after."
+      },
+      {
+        "id": "westpac_hotpoints_world",
+        "name": "Westpac Hotpoints World",
+        "issuer": "Westpac",
+        "annualFee": 285,
+        "rewardType": "store",
+        "earnModel": "tiered_hotpoints",
+        "tier1PtsPerDollar": 2,
+        "tier1Cap": 15000,
+        "tier2PtsPerDollar": 1,
+        "ptValue": 0.00494,
+        "isAmex": false,
+        "note": "Westpac Hotpoints: spend like cash via Hotpoints Pay or redeem in Hotpoints store. 1 hotpoint = $0.00494. Tiered: 2 pts/$1 up to $15,000/month, 1 pt/$1 after."
+      }
+    ]
+  }
+}
